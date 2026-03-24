@@ -51,10 +51,12 @@ def load_data():
         "https://www.googleapis.com/auth/drive"
     ]
 
-    creds = Credentials.from_service_account_file(
-        "credentials.json",
-        scopes=SCOPES
-    )
+ import streamlit as st
+
+creds = Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"],
+    scopes=SCOPES
+)
 
     client = gspread.authorize(creds)
     spreadsheet = client.open_by_key("1cWPfnZrBfFPaeGEBDW1VevM7yRImgtEpscYpb7d-McQ")
