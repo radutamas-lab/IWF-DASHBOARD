@@ -51,12 +51,10 @@ def load_data():
         "https://www.googleapis.com/auth/drive"
     ]
 
- import streamlit as st
-
-creds = Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"],
-    scopes=SCOPES
-)
+    creds = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=SCOPES
+    )
 
     client = gspread.authorize(creds)
     spreadsheet = client.open_by_key("1cWPfnZrBfFPaeGEBDW1VevM7yRImgtEpscYpb7d-McQ")
@@ -89,6 +87,8 @@ creds = Credentials.from_service_account_info(
     df["luna"] = df["Luna"]
 
     return df
+
+
 df = load_data()
 
 # ── HEADER + FILTRE ───────────────────────────────────────────────────────────
