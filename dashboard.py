@@ -279,8 +279,11 @@ with col_g1:
             delta = round(zi_vals[i+1] - zi_vals[i], 1)
             ax.annotate('', xy=(i+1, zi_vals[i+1]+0.2),
                         xytext=(i, zi_vals[i]+0.2),
-                        arrowprops=dict(arrowstyle='->', color='#2C3E50',
-                                       lw=1.5, linestyle='dashed' if i==0 else 'solid'))
+                        arrowprops=dict( arrowstyle='->',
+                color='#2C3E50',
+                lw=1.5,
+                linestyle='dashed'
+            ))
             ax.text(i+0.5, (zi_vals[i]+zi_vals[i+1])/2+1.2,
                     f'{delta:+.1f} zile', ha='center', fontsize=8.5,
                     style='italic', fontweight='bold',
@@ -524,7 +527,7 @@ for m in luni_tabel:
             'Luna': luna_names[m],
             'Entitate': ent,
             'Nr. Facturi': n,
-            'Zi Medie': round(d['zi'].mean(),1),
+            'Zi Medie': round(d['zi'].mean(),2),
             '% in 10z': f"{round((d['zi']<=10).sum()/n*100,1)}%",
             '% in 15z': f"{round((d['zi']<=15).sum()/n*100,1)}%",
             '% in 20z': f"{round((d['zi']<=20).sum()/n*100,1)}%",
@@ -542,8 +545,25 @@ if rows:
             return ['background-color:#DCE6F1;color:#1A1A2E'] * len(row)
         return ['background-color:#FCE4D6;color:#1A1A2E'] * len(row)
 
+    numeric_cols_right = [
+        'Nr. Facturi',
+        'Zi Medie',
+        '% in 10z',
+        '% in 15z',
+        '% in 20z',
+        'Tardive',
+        'Total RON'
+    ]
+
+    styled_tbl = (
+        tbl.style
+        .apply(color_rows, axis=1)
+        .format({'Zi Medie': '{:.2f}'})
+        .set_properties(subset=numeric_cols_right, **{'text-align': 'right'})
+    )
+
     st.dataframe(
-        tbl.style.apply(color_rows, axis=1),
+        styled_tbl,
         use_container_width=True,
         hide_index=True
     )
