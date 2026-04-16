@@ -538,6 +538,9 @@ for m in luni_tabel:
 if rows:
     tbl = pd.DataFrame(rows)
 
+    # ❌ Eliminam coloana Tardive
+    tbl = tbl.drop(columns=["Tardive"], errors="ignore")
+
     def color_rows(row):
         if row['Entitate'] == 'TOTAL':
             return ['background-color:#2C3E50;color:white'] * len(row)
@@ -545,27 +548,24 @@ if rows:
             return ['background-color:#DCE6F1;color:#1A1A2E'] * len(row)
         return ['background-color:#FCE4D6;color:#1A1A2E'] * len(row)
 
-    numeric_cols_right = [
-        'Nr. Facturi',
-        'Zi Medie',
-        '% in 10z',
-        '% in 15z',
-        '% in 20z',
-        'Tardive',
-        'Total RON'
-    ]
-
     styled_tbl = (
         tbl.style
         .apply(color_rows, axis=1)
         .format({'Zi Medie': '{:.2f}'})
-        .set_properties(subset=numeric_cols_right, **{'text-align': 'right'})
     )
 
     st.dataframe(
         styled_tbl,
         use_container_width=True,
-        hide_index=True
+        hide_index=True,
+        column_config={
+            "Nr. Facturi": st.column_config.NumberColumn(format="%d"),
+            "Zi Medie": st.column_config.NumberColumn(format="%.2f"),
+            "% in 10z": st.column_config.NumberColumn(format="%.1f%%"),
+            "% in 15z": st.column_config.NumberColumn(format="%.1f%%"),
+            "% in 20z": st.column_config.NumberColumn(format="%.1f%%"),
+            "Total RON": st.column_config.NumberColumn(format="%.2f")
+        }
     )
 
 st.markdown("---")
