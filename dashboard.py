@@ -538,6 +538,9 @@ for m in luni_tabel:
 if rows:
     tbl = pd.DataFrame(rows)
 
+    # ❌ eliminam coloana Tardive
+    tbl = tbl.drop(columns=["Tardive"], errors="ignore")
+
     def color_rows(row):
         if row['Entitate'] == 'TOTAL':
             return ['background-color:#2C3E50;color:white'] * len(row)
@@ -551,8 +554,7 @@ if rows:
         '% in 10z',
         '% in 15z',
         '% in 20z',
-        'Tardive',
-        'Total RON'
+        'Total RON'   # ← ramas aici
     ]
 
     styled_tbl = (
