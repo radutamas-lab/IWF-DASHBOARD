@@ -39,6 +39,67 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ── HELPERS LUNI ──────────────────────────────────────────────────────────────
+LUNA_ORDER = {
+    'Ianuarie': 1,
+    'Februarie': 2,
+    'Martie': 3,
+    'Aprilie': 4,
+    'Mai': 5,
+    'Iunie': 6,
+    'Iulie': 7,
+    'August': 8,
+    'Septembrie': 9,
+    'Octombrie': 10,
+    'Noiembrie': 11,
+    'Decembrie': 12,
+}
+
+LUNA_FULL_MAP = {
+    1: 'Ianuarie 2026',
+    2: 'Februarie 2026',
+    3: 'Martie 2026',
+    4: 'Aprilie 2026',
+    5: 'Mai 2026',
+    6: 'Iunie 2026',
+    7: 'Iulie 2026',
+    8: 'August 2026',
+    9: 'Septembrie 2026',
+    10: 'Octombrie 2026',
+    11: 'Noiembrie 2026',
+    12: 'Decembrie 2026',
+}
+
+LUNA_UPPER_MAP = {
+    1: 'IANUARIE',
+    2: 'FEBRUARIE',
+    3: 'MARTIE',
+    4: 'APRILIE',
+    5: 'MAI',
+    6: 'IUNIE',
+    7: 'IULIE',
+    8: 'AUGUST',
+    9: 'SEPTEMBRIE',
+    10: 'OCTOMBRIE',
+    11: 'NOIEMBRIE',
+    12: 'DECEMBRIE',
+}
+
+LUNA_LABEL_MAP = {
+    1: 'Ianuarie\n2026',
+    2: 'Februarie\n2026',
+    3: 'Martie\n2026',
+    4: 'Aprilie\n2026',
+    5: 'Mai\n2026',
+    6: 'Iunie\n2026',
+    7: 'Iulie\n2026',
+    8: 'August\n2026',
+    9: 'Septembrie\n2026',
+    10: 'Octombrie\n2026',
+    11: 'Noiembrie\n2026',
+    12: 'Decembrie\n2026',
+}
+
 # ── CITIRE DATE ────────────────────────────────────────────────────────────────
 @st.cache_data(ttl=300)
 def load_data():
@@ -95,7 +156,7 @@ df = load_data()
 col_t, col_f1, col_f2, col_f3 = st.columns([2.5, 1, 1, 1])
 with col_t:
     st.markdown("## 📊 Dashboard Facturare — WIL & WISE")
-    st.caption("Ianuarie–Martie 2026  ·  Date din sistem contabil")
+    st.caption("Ianuarie–Decembrie 2026  ·  Date din sistem contabil")
 
 with col_f1:
     entitate_opt = st.selectbox("Entitate", ["WIL + WISE", "WIL", "WISE"])
@@ -103,7 +164,7 @@ with col_f1:
 with col_f2:
     luni_disponibile = sorted(
         df['luna'].dropna().unique().tolist(),
-        key=lambda x: {'Ianuarie':1,'Februarie':2,'Martie':3}.get(x.split()[0], 99)
+        key=lambda x: LUNA_ORDER.get(str(x).split()[0], 99)
     )
     luna_sel_single = st.selectbox("Luna", ["Toate lunile"] + luni_disponibile)
     luna_sel = luni_disponibile if luna_sel_single == "Toate lunile" else [luna_sel_single]
@@ -117,7 +178,8 @@ with col_f3:
 dff = df.copy()
 if entitate_opt != "WIL + WISE":
     dff = dff[dff['entitate'] == entitate_opt]
-luna_nr_map = {'Ianuarie 2026':1,'Februarie 2026':2,'Martie 2026':3}
+
+luna_nr_map = {v: k for k, v in LUNA_FULL_MAP.items()}
 luni_sel_nr = [luna_nr_map[l] for l in luna_sel] if luna_sel else list(luna_nr_map.values())
 luna_nr_sel = luni_sel_nr[-1] if len(luni_sel_nr) == 1 else None
 
@@ -160,10 +222,28 @@ kpi(c3, f"{total_ron}M RON", "Total Facturat",
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── STILURI GRAFICE ───────────────────────────────────────────────────────────
-BG   = 'white'; GRID = '#EBF0F7'; TEXT = '#1A1A2E'; SUB = '#7F8C8D'
-COLORS_LUNA = {1:'#B03020', 2:'#E67E22', 3:'#1A6B3C'}
-luni   = [1, 2, 3]
-luni_n = ['Ianuarie\n2026', 'Februarie\n2026', 'Martie\n2026']
+BG   = 'white'
+GRID = '#EBF0F7'
+TEXT = '#1A1A2E'
+SUB  = '#7F8C8D'
+
+COLORS_LUNA = {
+    1: '#B03020',
+    2: '#E67E22',
+    3: '#1A6B3C',
+    4: '#1B4F91',
+    5: '#8E44AD',
+    6: '#16A085',
+    7: '#D35400',
+    8: '#2C3E50',
+    9: '#7D6608',
+    10: '#AF601A',
+    11: '#5D6D7E',
+    12: '#117864',
+}
+
+luni = sorted(df['luna_nr'].dropna().astype(int).unique().tolist())
+luni_n = [LUNA_LABEL_MAP[m] for m in luni]
 
 col_g1, col_g2 = st.columns(2)
 
@@ -178,7 +258,7 @@ with col_g1:
 
     fig, ax = plt.subplots(figsize=(6, 4), facecolor=BG)
     ax.set_facecolor(BG)
-    x = np.arange(3)
+    x = np.arange(len(luni))
     bar_colors = [COLORS_LUNA[m] for m in luni]
     bars = ax.bar(x, zi_vals, color=bar_colors, width=0.5, zorder=3,
                   edgecolor='white', linewidth=1)
@@ -189,9 +269,10 @@ with col_g1:
                     f'Ziua {val}', ha='center', va='bottom',
                     fontsize=12, fontweight='bold', color=col)
 
-    ax.axhline(10, color='#1A6B3C', linestyle=':', linewidth=2, zorder=2, alpha=0.8)
-    ax.text(2.42, 10.15, 'target\n≤ 10', ha='left', va='bottom',
-            fontsize=8, color='#1A6B3C', style='italic')
+    if len(luni) > 0:
+        ax.axhline(10, color='#1A6B3C', linestyle=':', linewidth=2, zorder=2, alpha=0.8)
+        ax.text(len(luni)-0.55, 10.15, 'target\n≤ 10', ha='left', va='bottom',
+                fontsize=8, color='#1A6B3C', style='italic')
 
     for i in range(len(zi_vals)-1):
         if zi_vals[i] > 0 and zi_vals[i+1] > 0:
@@ -205,7 +286,8 @@ with col_g1:
                     style='italic', fontweight='bold',
                     color='#1A6B3C' if delta < 0 else '#C0392B')
 
-    ax.set_xticks(x); ax.set_xticklabels(luni_n, fontsize=9, color=TEXT)
+    ax.set_xticks(x)
+    ax.set_xticklabels(luni_n, fontsize=9, color=TEXT)
     ax.set_ylim(0, max(zi_vals+[0])+5 if any(zi_vals) else 25)
     ax.set_ylabel('Ziua medie de emitere', fontsize=8.5, color=SUB)
     ax.grid(axis='y', color=GRID, linewidth=0.8, zorder=0)
@@ -213,7 +295,8 @@ with col_g1:
     ax.spines['bottom'].set_color(GRID)
     ax.tick_params(left=False, colors=SUB)
     fig.tight_layout()
-    st.pyplot(fig); plt.close()
+    st.pyplot(fig)
+    plt.close()
 
 # ── GRAFIC 2: % Cumulative (fostul pie) ──────────────────────────────────────
 with col_g2:
@@ -224,13 +307,17 @@ with col_g2:
 
     fig, ax = plt.subplots(figsize=(6, 4), facecolor=BG)
     ax.set_facecolor(BG)
-    x = np.arange(3); w = 0.25
+    x = np.arange(3)
+    w = 0.8 / max(len(luni), 1)
 
-    for i, (m, col, lbl) in enumerate(zip(luni,
-            [COLORS_LUNA[m] for m in luni], ['Ianuarie','Februarie','Martie'])):
-        d = dff_nozi[dff_nozi['luna_nr'] == m]; n = len(d)
-        pcts = [round((d['zi']<=c).sum()/n*100, 1) if n > 0 else 0 for c in cutoffs]
-        b = ax.bar(x + (i-1)*w, pcts, w, color=col, label=lbl,
+    for i, m in enumerate(luni):
+        col = COLORS_LUNA[m]
+        lbl = LUNA_FULL_MAP[m].split()[0]
+        d = dff_nozi[dff_nozi['luna_nr'] == m]
+        n = len(d)
+        pcts = [round((d['zi'] <= c).sum()/n*100, 1) if n > 0 else 0 for c in cutoffs]
+        offset = (i - (len(luni)-1)/2) * w
+        b = ax.bar(x + offset, pcts, w, color=col, label=lbl,
                    zorder=3, alpha=0.9, edgecolor='white')
         for bar, pct in zip(b, pcts):
             if pct > 0:
@@ -238,7 +325,8 @@ with col_g2:
                         f'{pct:.0f}%', ha='center', va='bottom',
                         fontsize=7.5, fontweight='bold', color=col)
 
-    ax.set_xticks(x); ax.set_xticklabels(labels_cut, fontsize=9, color=TEXT)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels_cut, fontsize=9, color=TEXT)
     ax.set_ylim(0, 115)
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v,_: f'{v:.0f}%'))
     ax.set_ylabel('% din total facturi', fontsize=8.5, color=SUB)
@@ -248,7 +336,8 @@ with col_g2:
     ax.tick_params(left=False, colors=SUB)
     ax.legend(frameon=False, fontsize=8.5, loc='upper left')
     fig.tight_layout()
-    st.pyplot(fig); plt.close()
+    st.pyplot(fig)
+    plt.close()
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -258,20 +347,20 @@ col_g3, col_g4 = st.columns(2)
 with col_g3:
     st.markdown('<div class="section-title">Facturi Emise după Ziua 20</div>',
                 unsafe_allow_html=True)
-    tard_vals = [int((dff_nozi[dff_nozi['luna_nr']==m]['zi']>20).sum()) for m in luni]
+    tard_vals = [int((dff_nozi[dff_nozi['luna_nr'] == m]['zi'] > 20).sum()) for m in luni]
 
     fig, ax = plt.subplots(figsize=(6, 3.8), facecolor=BG)
     ax.set_facecolor(BG)
-    bars = ax.bar(np.arange(3), tard_vals, color=bar_colors, width=0.5,
+    bars = ax.bar(np.arange(len(luni)), tard_vals, color=[COLORS_LUNA[m] for m in luni], width=0.5,
                   zorder=3, edgecolor='white', linewidth=1)
-    for bar, val, col in zip(bars, tard_vals, bar_colors):
+    for bar, val, col in zip(bars, tard_vals, [COLORS_LUNA[m] for m in luni]):
         label = str(val) if val > 0 else '✓ ZERO'
         ax.text(bar.get_x()+bar.get_width()/2,
                 bar.get_height()+0.3 if val > 0 else 0.5,
                 label, ha='center', va='bottom',
                 fontsize=13, fontweight='bold', color=col)
-    ax.set_xticks(np.arange(3))
-    ax.set_xticklabels(['Ianuarie','Februarie','Martie'], fontsize=9, color=TEXT)
+    ax.set_xticks(np.arange(len(luni)))
+    ax.set_xticklabels([LUNA_FULL_MAP[m].split()[0] for m in luni], fontsize=9, color=TEXT)
     ax.set_ylim(0, max(tard_vals+[1])+8)
     ax.set_ylabel('Nr. facturi tardive', fontsize=8.5, color=SUB)
     ax.grid(axis='y', color=GRID, linewidth=0.8, zorder=0)
@@ -279,19 +368,21 @@ with col_g3:
     ax.spines['bottom'].set_color(GRID)
     ax.tick_params(left=False, colors=SUB)
     fig.tight_layout()
-    st.pyplot(fig); plt.close()
+    st.pyplot(fig)
+    plt.close()
 
 with col_g4:
     st.markdown('<div class="section-title">WIL vs WISE — Zi Medie Comparativ</div>',
                 unsafe_allow_html=True)
     fig, ax = plt.subplots(figsize=(6, 3.8), facecolor=BG)
     ax.set_facecolor(BG)
-    x4 = np.arange(3); w4 = 0.35
+    x4 = np.arange(len(luni))
+    w4 = 0.35
     for i, (ent, col) in enumerate([('WIL','#1B4F91'),('WISE','#C0392B')]):
         vals = []
         for m in luni:
-            d = dff_nozi[(dff_nozi['luna_nr']==m) & (dff_nozi['entitate']==ent)]
-            vals.append(round(d['zi'].mean(),1) if len(d)>0 else 0)
+            d = dff_nozi[(dff_nozi['luna_nr'] == m) & (dff_nozi['entitate'] == ent)]
+            vals.append(round(d['zi'].mean(), 1) if len(d) > 0 else 0)
         b = ax.bar(x4+(i-0.5)*w4, vals, w4, color=col, label=ent,
                    zorder=3, edgecolor='white', alpha=0.9)
         for bar, val in zip(b, vals):
@@ -301,16 +392,21 @@ with col_g4:
                         fontsize=9, fontweight='bold', color=col)
     ax.axhline(10, color='#1A6B3C', linestyle=':', linewidth=1.5, zorder=2, alpha=0.7)
     ax.set_xticks(x4)
-    ax.set_xticklabels(['Ianuarie','Februarie','Martie'], fontsize=9, color=TEXT)
+    ax.set_xticklabels([LUNA_FULL_MAP[m].split()[0] for m in luni], fontsize=9, color=TEXT)
     ax.set_ylabel('Ziua medie de emitere', fontsize=8.5, color=SUB)
-    ax.set_ylim(0, 22)
+    ax.set_ylim(0, max(22, max([
+        dff_nozi[(dff_nozi['luna_nr'] == m) & (dff_nozi['entitate'].isin(['WIL','WISE']))]['zi'].mean()
+        if len(dff_nozi[(dff_nozi['luna_nr'] == m) & (dff_nozi['entitate'].isin(['WIL','WISE']))]) > 0 else 0
+        for m in luni
+    ]) + 5))
     ax.grid(axis='y', color=GRID, linewidth=0.8, zorder=0)
     ax.spines[['top','right','left']].set_visible(False)
     ax.spines['bottom'].set_color(GRID)
     ax.tick_params(left=False, colors=SUB)
     ax.legend(frameon=False, fontsize=9)
     fig.tight_layout()
-    st.pyplot(fig); plt.close()
+    st.pyplot(fig)
+    plt.close()
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -318,8 +414,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="section-title">Calendar Activitate Facturare</div>',
             unsafe_allow_html=True)
 
-cal_luna_nr = luni_sel_nr[-1] if luni_sel_nr else 3
-cal_luna_name = {1:'IANUARIE',2:'FEBRUARIE',3:'MARTIE'}.get(cal_luna_nr,'')
+cal_luna_nr = luni_sel_nr[-1] if luni_sel_nr else max(sorted(df['luna_nr'].dropna().astype(int).unique().tolist()))
+cal_luna_name = LUNA_UPPER_MAP.get(cal_luna_nr, '')
 
 dff_cal = df.copy()
 if entitate_opt != "WIL + WISE":
@@ -330,11 +426,15 @@ zi_counts = dff_cal.groupby('zi').size().to_dict()
 max_count = max(zi_counts.values()) if zi_counts else 1
 
 def get_color(n, mx):
-    if n == 0: return '#EBF0F7'
+    if n == 0:
+        return '#EBF0F7'
     pct = n / mx
-    if pct <= 0.25: return '#C0DD97'
-    if pct <= 0.50: return '#639922'
-    if pct <= 0.75: return '#3B6D11'
+    if pct <= 0.25:
+        return '#C0DD97'
+    if pct <= 0.50:
+        return '#639922'
+    if pct <= 0.75:
+        return '#3B6D11'
     return '#1A6B3C'
 
 first_day, days_in_month = calendar.monthrange(2026, cal_luna_nr)
@@ -406,20 +506,24 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.markdown('<div class="section-title">Tabel Sumar Detaliat</div>', unsafe_allow_html=True)
 
 rows = []
-luni_tabel = luni_sel_nr if luni_sel_nr else [1,2,3]
-luna_names = {1:'Ianuarie 2026',2:'Februarie 2026',3:'Martie 2026'}
+luni_tabel = luni_sel_nr if luni_sel_nr else sorted(df['luna_nr'].dropna().astype(int).unique().tolist())
+luna_names = LUNA_FULL_MAP
 
 for m in luni_tabel:
     for ent in ['WIL','WISE','TOTAL']:
         base = dff_nozi if luna_nr_sel else df
         if entitate_opt != "WIL + WISE" and ent != 'TOTAL':
-            if ent != entitate_opt: continue
-        d = base[base['luna_nr']==m] if ent=='TOTAL' \
-            else base[(base['luna_nr']==m)&(base['entitate']==ent)]
+            if ent != entitate_opt:
+                continue
+        d = base[base['luna_nr'] == m] if ent == 'TOTAL' \
+            else base[(base['luna_nr'] == m) & (base['entitate'] == ent)]
         n = len(d)
-        if n == 0: continue
+        if n == 0:
+            continue
         rows.append({
-            'Luna': luna_names[m], 'Entitate': ent, 'Nr. Facturi': n,
+            'Luna': luna_names[m],
+            'Entitate': ent,
+            'Nr. Facturi': n,
             'Zi Medie': round(d['zi'].mean(),1),
             '% in 10z': f"{round((d['zi']<=10).sum()/n*100,1)}%",
             '% in 15z': f"{round((d['zi']<=15).sum()/n*100,1)}%",
@@ -430,14 +534,19 @@ for m in luni_tabel:
 
 if rows:
     tbl = pd.DataFrame(rows)
+
     def color_rows(row):
         if row['Entitate'] == 'TOTAL':
-            return ['background-color:#2C3E50;color:white']*len(row)
+            return ['background-color:#2C3E50;color:white'] * len(row)
         elif row['Entitate'] == 'WIL':
-            return ['background-color:#DCE6F1;color:#1A1A2E']*len(row)
-        return ['background-color:#FCE4D6;color:#1A1A2E']*len(row)
-    st.dataframe(tbl.style.apply(color_rows, axis=1),
-                 use_container_width=True, hide_index=True)
+            return ['background-color:#DCE6F1;color:#1A1A2E'] * len(row)
+        return ['background-color:#FCE4D6;color:#1A1A2E'] * len(row)
+
+    st.dataframe(
+        tbl.style.apply(color_rows, axis=1),
+        use_container_width=True,
+        hide_index=True
+    )
 
 st.markdown("---")
 st.caption("Sursa: WIL_facturi_emise.xlsx & WISE_facturi_emise.xlsx  ·  Confidential")
