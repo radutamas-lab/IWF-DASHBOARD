@@ -301,6 +301,72 @@ with col_g1:
     st.pyplot(fig)
     plt.close()
 
+# ── GRAFIC NOU: Pondere din total venituri facturata pana la ziua N ──────────
+st.markdown('<div class="section-title">Pondere din Total Venituri Facturata pana la Ziua N</div>',
+            unsafe_allow_html=True)
+
+checkpoints = [10, 15, 20, 31]
+labels_cut = ['Pana la ziua 10', 'Pana la ziua 15', 'Pana la ziua 20', 'Final luna']
+
+fig, ax = plt.subplots(figsize=(12, 4.2), facecolor=BG)
+ax.set_facecolor(BG)
+
+x = np.arange(len(checkpoints))
+w = 0.8 / max(len(luni), 1)
+
+for i, m in enumerate(luni):
+    col = COLORS_LUNA[m]
+    lbl = LUNA_FULL_MAP[m].split()[0]
+
+    d = dff_nozi[dff_nozi['luna_nr'] == m].copy()
+    total_luna = d['total'].sum()
+
+    pct_vals = []
+    for c in checkpoints:
+        facturat_pana_la_c = d[d['zi'] <= c]['total'].sum()
+        pct = round((facturat_pana_la_c / total_luna) * 100, 1) if total_luna > 0 else 0
+        pct_vals.append(pct)
+
+    offset = (i - (len(luni)-1)/2) * w
+    bars = ax.bar(
+        x + offset,
+        pct_vals,
+        width=w,
+        color=col,
+        label=lbl,
+        zorder=3,
+        alpha=0.92,
+        edgecolor='white',
+        linewidth=0.8
+    )
+
+    for bar, pct in zip(bars, pct_vals):
+        if pct > 0:
+            ax.text(
+                bar.get_x() + bar.get_width()/2,
+                bar.get_height() + 1,
+                f'{pct:.0f}%',
+                ha='center',
+                va='bottom',
+                fontsize=8,
+                fontweight='bold',
+                color=col
+            )
+
+ax.set_xticks(x)
+ax.set_xticklabels(labels_cut, fontsize=9, color=TEXT)
+ax.set_ylim(0, 115)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f'{v:.0f}%'))
+ax.set_ylabel('% din total venituri ale lunii', fontsize=8.5, color=SUB)
+ax.grid(axis='y', color=GRID, linewidth=0.8, zorder=0)
+ax.spines[['top','right','left']].set_visible(False)
+ax.spines['bottom'].set_color(GRID)
+ax.tick_params(left=False, colors=SUB)
+ax.legend(frameon=False, fontsize=8.5, loc='upper left')
+fig.tight_layout()
+st.pyplot(fig)
+plt.close()
+
 # ── GRAFIC 2: % Cumulative (fostul pie) ──────────────────────────────────────
 with col_g2:
     st.markdown('<div class="section-title">Procent Facturi în Primele N Zile</div>',
